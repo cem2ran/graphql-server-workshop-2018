@@ -43,7 +43,7 @@ type item = {
   id: string,
   adgangsadresse,
   etage: option(string),
-  doer: option(string)
+  [@key "dør"] doer: option(string)
 };
 
 let items_to_addresses =
@@ -67,7 +67,7 @@ let items_to_addresses =
             }
           }: Geotypes.Address.t
         ),
-        addresses
+        addresses 
       )
     )
   | Error(_) as err => err;

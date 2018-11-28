@@ -6,24 +6,41 @@ open Geotypes;
 
 [@deriving yojson({strict: false})]
 type archive_file = {
+  [@key "FileName"]
   name: string,
+  [@key "FileSize"]
   size: int,
+  [@key "FileUrl"]
   path: string,
+  [@key "MimeType"]
   mime_type: string,
-  page_count: int
+  [@key "PageCount"]
+  page_count: int,
 };
 
 [@deriving yojson({strict: false})]
-type archive_document = {files: list(archive_file)};
+type archive_document = {
+  [@key "Filer"]
+  files: list(archive_file),
+};
 
 [@deriving yojson({strict: false})]
-type archive_item = {documents: list(archive_document)};
+type archive_item = {
+  [@key "Dokumenter"]
+  documents: list(archive_document),
+};
 
 [@deriving yojson({strict: false})]
-type archive_entry = {items: list(archive_item)};
+type archive_entry = {
+  [@key "Items"]
+  items: list(archive_item),
+};
 
 [@deriving yojson({strict: false})]
-type search_response = {archives: list(archive_entry)};
+type search_response = {
+  [@key "Archives"]
+  archives: list(archive_entry),
+};
 
 let response_to_document_list =
   fun
@@ -42,22 +59,22 @@ let response_to_document_list =
                         size: file.size,
                         url: "https://public.filarkiv.dk" ++ file.path,
                         mime_type: file.mime_type,
-                        page_count: file.page_count
+                        page_count: file.page_count,
                       };
                       [doc, ...memo];
                     },
                     memo,
-                    doc.files
+                    doc.files,
                   ),
                 memo,
-                item.documents
+                item.documents,
               ),
             memo,
-            archive_entry.items
+            archive_entry.items,
           ),
         [],
-        rsp.archives
-      )
+        rsp.archives,
+      ),
     )
   | Error(_) as err => err;
 
@@ -67,19 +84,20 @@ let search = (~tenant_id, ~id) => {
       Format.sprintf(
         "https://public.filarkiv.dk/Search?tenantid=%d&adgangsadresseid=%s",
         tenant_id,
-        id
-      )
+        id,
+      ),
     );
   Cohttp_lwt_unix.Client.get(uri)
   >>= (
     ((rsp, body)) =>
       Cohttp_lwt.Body.to_string(body)
       >|= (
-        (body) => {
+        body => {
           let code = Response.status(rsp) |> Code.code_of_status;
           if (Code.is_success(code)) {
             switch (Yojson.Safe.from_string(body)) {
-            | json => search_response_of_yojson(json) |> response_to_document_list
+            | json =>
+              search_response_of_yojson(json) |> response_to_document_list
             | exception (Yojson.Json_error(err)) => Error(err)
             };
           } else {
@@ -88,4 +106,4 @@ let search = (~tenant_id, ~id) => {
         }
       )
   );
-}; 
+};
