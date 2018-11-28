@@ -9,6 +9,7 @@
   "dependencies": {
     "ocaml": "~4.6.0",
     "@opam/dune": "*",
+    "@opam/lwt_ssl": "*",
     "@opam/cohttp-lwt-unix": "*",
     "@opam/ppx_deriving_yojson": "*",
     "@opam/graphql": "*",
